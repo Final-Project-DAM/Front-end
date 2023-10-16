@@ -1,0 +1,37 @@
+:root {
+  --text-color: black;
+  --color-yellow: #ffe143;
+  --color-blue: #0c0434;
+  --fondo-white: #ffffff;
+  --min-with: 325px;
+  --min-with-element: 320px;
+}
+
+
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: Poppins-Regular, sans-serif;
+}
+
+body {
+  min-width: var(--min-with, 325px);
+}
+
+.container {
+  width: 100%;
+  display: grid;
+  grid-template-areas:
+    'header header'
+    'ftpc ftpc'
+    'event event'
+    'footer footer';
+  grid-column: 1fr 1fr;
+  grid-template-rows: repeat(1fr);
+}
+
+
