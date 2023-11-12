@@ -1,6 +1,9 @@
+import { HttpClient } from '@angular/common/http';
 import { EventsResult } from '../../interface/event';
 import { Injectable } from '@angular/core';
 import axios from 'axios';
+import { map, Observable } from 'rxjs';
+
 
 @Injectable({
   providedIn: 'root',
@@ -8,14 +11,8 @@ import axios from 'axios';
 export class FiltersService {
   eventosCanarios: EventsResult[] = [];
   urlEventos = 'https://api-canary-events.netlify.app/events';
- // urlEventos = 'http://localhost:4000/api/events';
-  // urlEventos =
-  //   'mongodb+srv://intrepidibex:Stos5BsCqdS7MzIb@cluster0.lxr4zbx.mongodb.net/?retryWrites=true&w=majority' +
-  //   '/eventosCanarios';
-  // urlEventos =
-  // 'https://happy-hats-rush-92-172-244-82.loca.lt' + '/eventosCanarios'; // Este portal es el mismo que mi local http://localhost:3000/eventosCanarios pero declarado público con el local tunnel. Los demas usuarios de la app ascederán a mi localhost3000 con la dirreccion que les ponga aquí.
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
 
   async getEvents(): Promise<EventsResult[]> {
     const response = await axios.get(this.urlEventos);
@@ -26,28 +23,46 @@ export class FiltersService {
     return axios.get(this.urlEventos + '?page=' + pageNum).then(resp => resp.data);
   }
 
-  async getFilteredEvents(
-    place: string,
-    tipoEvent: string,
-  ): Promise<EventsResult[]> {
-    let response;
+  getFilteredEvents(place: string, tipoEvent: string, ): Observable<EventsResult[] | undefined>{
+    let response: Observable<EventsResult[] | undefined>;
+
     if (place !== 'Todos' && tipoEvent === 'Todos') {
-      response = await axios.get(`${this.urlEventos}/filter?place=${place}`);
-    }
-    if (place !== 'Todos' && tipoEvent !== 'Todos') {
-      response = await axios.get(
-        `${this.urlEventos}/filter?place=${place}&tipo_event=${tipoEvent}`,
+      response = this.http.get<EventsResult[]>(`${this.urlEventos}/filter/filter?place=${place}`)
+      .pipe(
+        map((resp: EventsResult[]) => {
+          console.log('resp '+resp);
+          return resp.length > 0 ? resp : undefined;
+        }),
       );
     }
-    if (place === 'Todos' && tipoEvent !== 'Todos') {
-      response = await axios.get(
-        `${this.urlEventos}/filter?tipo_event=${tipoEvent}`,
+    else if (place !== 'Todos' && tipoEvent !== 'Todos') {
+      response = this.http.get<EventsResult[]>(`${this.urlEventos}/filter/filter?place=${place}&tipo_event=${tipoEvent}`)
+      .pipe(
+        map((resp: EventsResult[]) => {
+          console.log('resp '+resp);
+          return resp.length > 0 ? resp : undefined;
+        }),
       );
     }
-    if (place === 'Todos' && tipoEvent === 'Todos') {
-      response = await axios.get(`${this.urlEventos}`);
+    else if (place === 'Todos' && tipoEvent !== 'Todos') {
+      response = this.http.get<EventsResult[]>(`${this.urlEventos}/filter/filter?tipo_event=${tipoEvent}` )
+      .pipe(
+        map((resp: EventsResult[]) => {
+          console.log('resp '+resp);
+          return resp.length > 0 ? resp : undefined;
+        }),
+      );
+    }
+    else{
+       response = this.http.get<EventsResult[]>(`${this.urlEventos}`)
+       .pipe(
+         map((resp: EventsResult[]) => {
+          console.log('resp '+resp);
+          return resp.length > 0 ? resp : undefined;
+         }),
+       );
     }
 
-    return response?.data;
+    return response;
   }
 }

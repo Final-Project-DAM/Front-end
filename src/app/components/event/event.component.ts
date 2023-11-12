@@ -31,12 +31,9 @@ export class EventComponent implements OnInit {
     private route: Router,
     private authServices: AuthService,
   ) {}
+
   async ngOnInit(): Promise<void> {
     this.get10Events();
-    /* this.service.getEvents().then((eventos) => {
-      this.events = eventos;
-      this.eventsToRender = eventos;
-    }); */
     this.token = localStorage.getItem('token');
     if (this.token) {
       (await this.authServices.getUserByToken(this.token)).subscribe(
@@ -54,12 +51,6 @@ export class EventComponent implements OnInit {
     this.eventServices.getEventDetails(id);
     this.route.navigateByUrl(`/events/${id}`);
   }
-  getFilteredEvents = ({
-    tipoEvento = this.tipoEvento,
-    place = this.place,
-  }) => {
-    return this.service.getFilteredEvents(place, tipoEvento);
-  };
 
   async change1(event: Event) {
     const {
@@ -68,12 +59,12 @@ export class EventComponent implements OnInit {
     } = event;
 
     this.place = value;
-
-    const filteredEvents = await this.getFilteredEvents({
-      place: value,
+    (await this.service.getFilteredEvents(this.place, this.tipoEvento))
+    .subscribe(resp => {
+      if(resp){
+        this.eventsToRender = resp;
+      }
     });
-
-    this.eventsToRender = filteredEvents;
   }
 
   async change2(event: Event) {
@@ -84,26 +75,19 @@ export class EventComponent implements OnInit {
 
     this.tipoEvento = value;
 
-    const filteredEvents = await this.getFilteredEvents({
-      tipoEvento: value,
+    (await this.service.getFilteredEvents(this.place, this.tipoEvento))
+    .subscribe(resp => {
+      if(resp){
+        this.eventsToRender = resp;
+      }
     });
-
-    this.eventsToRender = filteredEvents;
   }
+
   async getEvent(id: string) {
     (await this.eventServices.getEventDetails(id)).subscribe((resp) => {
       this.event = resp;
-      // this.getEvent(id);
     });
   }
-
-  // seeFavorites() {
-  //   if (this.user && this.user.favorites) {
-  //     this.eventsToRender = this.events!.filter((ev) =>
-  //       (this.user as User).favorites.includes(ev._id),
-  //     );
-  //   }
-  // }
 
   removeSeeFavorites() {
     this.eventsToRender = this.events as EventsResult[];
@@ -126,19 +110,6 @@ export class EventComponent implements OnInit {
         }
 
     })
-
-
-    // const events = [];
-    // for (let i = 0; i < this.user!.fav.length; i++) {
-    //   const event = await (
-    //     await this.eventServices.getEventDetails(this.user!.fav[i])
-    //   ).toPromise();
-    //   events.push(event);
-
-    //   this.fav = true;
-
-    // }
-    // this.eventsToRender = events as EventsResult[];
   }
 
   backPage(){
@@ -166,10 +137,4 @@ export class EventComponent implements OnInit {
       }
     })
   }
-
-  // const a = [  { _id: "1234" } , { _id : "12" } , { _id : "34"} ]
-  // const b = ["1234" , "34"]
-  // [ 1 , 2 , 3 , 4 ].filter( i => i > 3 )
-  // const c = a.filter( evento => evento._id === "1234")
-  // const d = a.filter( evento => b.includes(evento._id) )
 }
